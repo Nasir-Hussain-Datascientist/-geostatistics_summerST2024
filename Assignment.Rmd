@@ -1,0 +1,284 @@
+---
+title: "Water Retaining Facilities Analysis"
+author: 
+  - "Name: Kabir Carpenter"
+  - "Professor: Alexis Robinson"
+date: "2024-07-13"
+output: html_document
+---
+```{r}
+
+```
+
+```{r}
+# This code chunk sets the options for the entire R Markdown document
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load the rmarkdown library
+library(rmarkdown)
+
+# Set the working directory
+setwd("D:/datascience/Spatial Data Science")
+
+# Get the current working directory
+getwd()
+```
+
+```{r}
+# Load the data from a CSV file into a dataframe named WaterRetaining
+WaterRetaining = read.csv("WaterRetainingFacilities.csv", sep = ",", header = TRUE)
+
+# Display summary statistics for each variable in the dataset
+summary(WaterRetaining)
+
+```
+
+
+```{r}
+# Create a histogram of the ImpoundmentLevel variable
+hist(WaterRetaining$ImpoundmentLevel, 
+     main = "Histogram of ImpoundmentLevel", 
+     xlab = "ImpoundmentLevel (mams)", 
+     col = "blue")
+
+```
+
+```{r}
+# Create a scatter plot of DamHeight vs ImpoundmentLevel
+plot(WaterRetaining$DamHeight, WaterRetaining$ImpoundmentLevel,
+     main = "ImpoundmentLevel vs DamHeight",
+     xlab = "Dam Height (m)",
+     ylab = "Impoundment Level (mams)",
+     col = "red",
+     pch = 19)
+
+```
+
+```{r}
+# Calculate the mean ImpoundmentLevel, excluding missing values
+mean_impoundment = mean(WaterRetaining$ImpoundmentLevel, na.rm = TRUE)
+
+# Calculate the weighted mean ImpoundmentLevel using StorageLevel as weights, excluding missing values
+weighted_mean_impoundment = sum(WaterRetaining$ImpoundmentLevel * WaterRetaining$StorageLevel, na.rm = TRUE) / sum(WaterRetaining$StorageLevel, na.rm = TRUE)
+
+# Display the calculated means
+mean_impoundment
+weighted_mean_impoundment
+
+```
+
+```{r}
+# Calculate descriptive statistics for StorageLevel with units
+median_storage <- round(median(WaterRetaining$StorageLevel, na.rm = TRUE), 1) # in cubic meters
+mean_storage <- round(mean(WaterRetaining$StorageLevel, na.rm = TRUE), 1) # in cubic meters
+range_storage <- round(range(WaterRetaining$StorageLevel, na.rm = TRUE), 1) # in cubic meters
+iqr_storage <- round(IQR(WaterRetaining$StorageLevel, na.rm = TRUE), 1) # in cubic meters
+sd_storage <- round(sd(WaterRetaining$StorageLevel, na.rm = TRUE), 1) # in cubic meters
+
+# Display the calculated statistics
+list(median = paste(median_storage, "cubic meters"), 
+     mean = paste(mean_storage, "cubic meters"), 
+     range = paste(range_storage, "cubic meters"), 
+     IQR = paste(iqr_storage, "cubic meters"), 
+     SD = paste(sd_storage, "cubic meters"))
+
+```
+Based on these calculations, the median (17.4 cubic meters) should be used as the measure of central tendency because it is less affected by extreme values (outliers) compared to the mean. This makes the median a more reliable measure for representing the typical storage level in this dataset.
+```{r}
+# Create a boxplot of the StorageLevel variable
+boxplot(WaterRetaining$StorageLevel,
+        main = "Boxplot of Storage Level",
+        ylab = "Storage Level (units)",
+        col = "lightblue")
+
+
+```
+
+
+##of the  boxplot of Storage Level:
+
+## Outliers: 
+The boxplot shows several outliers above the upper whisker. These are data points that are significantly higher than the rest of the data.
+
+## Skewness:
+
+The presence of outliers suggests that the data may be right-skewed, meaning there are some extremely high values pulling the mean upwards.
+
+## Given these observations:
+
+## Median:
+
+The median is a more robust measure of central tendency in the presence of outliers and skewed data. It represents the middle value of the dataset and is not affected by extreme values.
+
+## Mean:
+
+The mean can be heavily influenced by outliers and may not accurately reflect the central tendency of skewed data.
+
+## Conclusion: 
+
+Based on the boxplot, I would use the median as the measure of central tendency for the Storage Level. This choice is justified because the median is less affected by the outliers and skewed distribution, providing a more accurate representation of the central tendency for this dataset.
+
+
+
+#This code chunk calculates the mean dam height (`DamHeight` column) from your dataset `WaterRetaining`. It assigns the result to `mean_dam_height` and displays it when you knit your R Markdown document.
+
+
+```{r}
+library(sp)
+library(sf)  # For handling spatial data
+
+```
+```{r}
+# Create sf object
+sf_points <- st_as_sf(WaterRetaining, coords = c("easting_m", "northing_m"))
+
+# Check the structure and attributes of sf_points
+st_geometry(sf_points)  # Check the geometry (should show POINT)
+
+# Check the first few rows of sf_points to verify it's correct
+head(sf_points)
+
+```
+```{r}
+# Calculate the mean dam height
+mean_dam_height <- mean(WaterRetaining$DamHeight, na.rm = TRUE)
+mean_dam_height
+
+```
+
+```{r}
+# Calculate weighted mean center using dam heights as weights
+weighted_mean_center <- st_centroid(sf_points, weights = WaterRetaining$DamHeight)
+
+# Extract coordinates of the weighted mean center
+weighted_mean_center_coords <- st_coordinates(weighted_mean_center)
+weighted_mean_center
+
+```
+
+The values of the mean dam height and the weighted mean center provide specific insights into the dataset of water retaining facilities. Here's what each value tells us:
+
+1. **Mean Dam Height (41.05751):**
+   - This value represents the average height of dams across all water retaining facilities in your dataset.
+   - **Insights Provided:**
+     - It gives a measure of the central tendency of dam heights, indicating the typical height around which the dam heights are distributed.
+     - It provides a baseline for understanding the general size or scale of dams within your study area.
+     - It helps in assessing if there are significant variations or outliers in dam heights that might impact infrastructure planning, environmental considerations, or risk assessments.
+
+2. **Weighted Mean Center:**
+   - The weighted mean center is a spatial statistic that takes into account the geographic locations (coordinates) of each water retaining facility, weighted by their respective dam heights.
+   - **Insights Provided:**
+     - **Spatial Concentration:** It indicates the central geographic location where facilities with taller dams are clustered.
+     - **Geographic Distribution:** It shows the geographic center of gravity for the dataset, considering the influence of dam heights as weights.
+     - **Spatial Patterns:** It helps in visualizing and understanding how facilities with different dam heights are distributed across the study area.
+
+   Given the coordinates provided for the weighted mean center, these points (X, Y coordinates) show where the centers of concentration are located spatially, considering the influence of dam heights. This information is crucial for spatial planning, infrastructure development, environmental impact assessments, and disaster risk management associated with water retaining facilities.
+
+### Practical Applications:
+- **Engineering and Infrastructure Planning:** Helps in identifying areas where infrastructure improvements might be needed based on dam heights and their geographic concentration.
+- **Environmental Management:** Supports assessments of environmental impacts, such as flood risks and ecosystem effects, associated with different dam sizes and locations.
+- **Urban and Regional Planning:** Guides urban planners in sustainable development practices, considering the spatial distribution of critical water infrastructure.
+- **Disaster Risk Reduction:** Assists in identifying areas vulnerable to dam-related hazards and in planning mitigation measures.
+
+These values and analyses are essential for making informed decisions regarding the management, development, and resilience of water retaining facilities and the surrounding environments.
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+
+# Load the data from a CSV file into a dataframe named WaterRetaining
+WaterRetaining <- read.csv("WaterRetainingFacilities.csv", sep = ",", header = TRUE)
+
+# Calculate the mean DamHeight
+mean_dam_height <- mean(WaterRetaining$DamHeight, na.rm = TRUE)
+
+# Create a subset of dams with heights greater than the mean
+subset_dams <- WaterRetaining %>% filter(DamHeight > mean_dam_height)
+
+# Calculate the mean centers for the entire dataset and the subset
+mean_center_all <- colMeans(WaterRetaining[, c("easting_m", "northing_m")], na.rm = TRUE)
+mean_center_subset <- colMeans(subset_dams[, c("easting_m", "northing_m")], na.rm = TRUE)
+
+# Plot the data
+ggplot() +
+  geom_point(data = WaterRetaining, aes(x = easting_m, y = northing_m), color = 'blue', alpha = 0.5, label = "Original Data") +
+  geom_point(data = subset_dams, aes(x = easting_m, y = northing_m), color = 'red', alpha = 0.7, label = "Subset Data") +
+  geom_point(aes(x = mean_center_all[1], y = mean_center_all[2]), color = 'green', size = 3) +
+  geom_point(aes(x = mean_center_subset[1], y = mean_center_subset[2]), color = 'orange', size = 3) +
+  labs(title = "Switzerland Water Retaining Facilities Scatter Plot (Kabir Carpenter)",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_text(aes(x = mean_center_all[1], y = mean_center_all[2], label = "Mean Center All"), hjust = 1.5, vjust = -1) +
+  geom_text(aes(x = mean_center_subset[1], y = mean_center_subset[2], label = "Mean Center Subset"), hjust = 1.5, vjust = -1)
+
+```
+
+```{r}
+# Calculate the standard deviation of easting and northing for the entire dataset
+sd_easting_all <- sd(WaterRetaining$easting_m, na.rm = TRUE)
+sd_northing_all <- sd(WaterRetaining$northing_m, na.rm = TRUE)
+sd_all <- sqrt(sd_easting_all^2 + sd_northing_all^2)
+sd_all <- round(sd_all, 1)
+
+# Create subsets for Water Retaining Hydroelectric Facilities, Small Dam Heights, and Large Dam Heights
+subset_hydroelectric <- WaterRetaining %>% filter(grepl("Hydroelectric", FacilityAim, ignore.case = TRUE))
+subset_small_dams <- WaterRetaining %>% filter(DamHeight <= median(WaterRetaining$DamHeight, na.rm = TRUE))
+subset_large_dams <- WaterRetaining %>% filter(DamHeight > median(WaterRetaining$DamHeight, na.rm = TRUE))
+
+# Calculate standard deviation for each subset
+sd_easting_hydro <- sd(subset_hydroelectric$easting_m, na.rm = TRUE)
+sd_northing_hydro <- sd(subset_hydroelectric$northing_m, na.rm = TRUE)
+sd_hydro <- sqrt(sd_easting_hydro^2 + sd_northing_hydro^2)
+sd_hydro <- round(sd_hydro, 1)
+
+sd_easting_small <- sd(subset_small_dams$easting_m, na.rm = TRUE)
+sd_northing_small <- sd(subset_small_dams$northing_m, na.rm = TRUE)
+sd_small <- sqrt(sd_easting_small^2 + sd_northing_small^2)
+sd_small <- round(sd_small, 1)
+
+sd_easting_large <- sd(subset_large_dams$easting_m, na.rm = TRUE)
+sd_northing_large <- sd(subset_large_dams$northing_m, na.rm = TRUE)
+sd_large <- sqrt(sd_easting_large^2 + sd_northing_large^2)
+sd_large <- round(sd_large, 1)
+
+# Print the calculated standard deviations
+list(
+  sd_all = paste(sd_all, "meters"),
+  sd_hydro = paste(sd_hydro, "meters"),
+  sd_small = paste(sd_small, "meters"),
+  sd_large = paste(sd_large, "meters")
+)
+
+```
+
+## Spatial Dispersion (Standard Deviation) for Water Retaining Facilities:
+
+ Overall:  85794.1 meters
+ 
+
+ Small Dam Heights:  86549.1 meters
+ 
+ Large Dam Heights:  82376.8 meters
+
+## Conclusion:
+
+ The spatial dispersion of water retaining facilities indicates how spread out these facilities are geographically.
+ 
+ Comparing the standard deviations, we observe that hydroelectric facilities have a dispersion of NA meters, which might be different from the overall dataset's dispersion of 85794.1 meters.
+ 
+ Small dam heights show a dispersion of 86549.1 meters, while large dam heights show a dispersion of 82376.8 meters.
+ 
+ This comparison indicates whether facilities are clustered or dispersed across different subsets.
+
+## Reason for Using Median Instead of Mean:
+
+ The median is used to subset the data because it is less affected by outliers and skewed data distributions. In the presence of extreme values, the mean can be distorted, leading to a less representative central tendency. Using the median provides a more robust and reliable method for dividing the dataset into subsets.
+
+
+
+
+
+
