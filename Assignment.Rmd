@@ -1,3 +1,4 @@
+
 ---
 title: "Water Retaining Facilities Analysis"
 author: 
@@ -6,9 +7,13 @@ author:
 date: "2024-07-13"
 output: html_document
 ---
-```{r}
 
-```
+## This code chunk is for setup purposes. It does the following:
+## Sets global options for the R Markdown chunks using knitr::opts_chunk$set(). Here, echo = TRUE means that the R code will be displayed in the final document.
+## Loads the rmarkdown library.
+## Sets the working directory to "D:/datascience/Spatial Data Science".
+## Retrieves and prints the current working directory.
+
 
 ```{r}
 # This code chunk sets the options for the entire R Markdown document
@@ -24,6 +29,8 @@ setwd("D:/datascience/Spatial Data Science")
 getwd()
 ```
 
+## This chunk reads the data from a CSV file named "WaterRetainingFacilities.csv" into a dataframe called WaterRetaining. It then displays summary statistics for each variable in the dataset using the summary() function.
+
 ```{r}
 # Load the data from a CSV file into a dataframe named WaterRetaining
 WaterRetaining = read.csv("WaterRetainingFacilities.csv", sep = ",", header = TRUE)
@@ -34,6 +41,8 @@ summary(WaterRetaining)
 ```
 
 
+## This chunk creates a histogram of the ImpoundmentLevel variable from the WaterRetaining dataset. It sets the main title of the histogram, the x-axis label, and the color of the bars to blue.
+
 ```{r}
 # Create a histogram of the ImpoundmentLevel variable
 hist(WaterRetaining$ImpoundmentLevel, 
@@ -42,6 +51,10 @@ hist(WaterRetaining$ImpoundmentLevel,
      col = "blue")
 
 ```
+
+## This chunk creates a scatter plot of ImpoundmentLevel against DamHeight. It sets the main title, x-axis label, y-axis label, point color (red), and point shape (pch = 19).
+
+
 
 ```{r}
 # Create a scatter plot of DamHeight vs ImpoundmentLevel
@@ -53,6 +66,11 @@ plot(WaterRetaining$DamHeight, WaterRetaining$ImpoundmentLevel,
      pch = 19)
 
 ```
+
+## This chunk calculates the mean and weighted mean of the ImpoundmentLevel variable:
+## mean_impoundment calculates the mean of ImpoundmentLevel, excluding any missing values (na.rm = TRUE).
+## weighted_mean_impoundment calculates the weighted mean of ImpoundmentLevel using StorageLevel as weights.
+## The calculated means are then displayed.
 
 ```{r}
 # Calculate the mean ImpoundmentLevel, excluding missing values
@@ -66,6 +84,16 @@ mean_impoundment
 weighted_mean_impoundment
 
 ```
+
+## This chunk calculates and displays descriptive statistics for the StorageLevel variable:
+
+## Median
+## Mean
+## Range
+## Interquartile Range (IQR)
+## Standard Deviation (SD)
+## All values are rounded to one decimal place and displayed with units (cubic meters).
+## The median is chosen as a more robust measure of central tendency compared to the mean because it is less affected by outliers.
 
 ```{r}
 # Calculate descriptive statistics for StorageLevel with units
@@ -84,6 +112,8 @@ list(median = paste(median_storage, "cubic meters"),
 
 ```
 Based on these calculations, the median (17.4 cubic meters) should be used as the measure of central tendency because it is less affected by extreme values (outliers) compared to the mean. This makes the median a more reliable measure for representing the typical storage level in this dataset.
+
+## This chunk creates a boxplot of the StorageLevel variable. The boxplot helps visualize the distribution, identify outliers, and assess skewness
 ```{r}
 # Create a boxplot of the StorageLevel variable
 boxplot(WaterRetaining$StorageLevel,
@@ -120,7 +150,8 @@ Based on the boxplot, I would use the median as the measure of central tendency 
 
 
 
-#This code chunk calculates the mean dam height (`DamHeight` column) from your dataset `WaterRetaining`. It assigns the result to `mean_dam_height` and displays it when you knit your R Markdown document.
+
+## This chunk loads the sp and sf libraries for handling spatial data.
 
 
 ```{r}
@@ -128,6 +159,12 @@ library(sp)
 library(sf)  # For handling spatial data
 
 ```
+
+## This chunk converts the WaterRetaining dataframe into an sf object using the coordinates easting_m and northing_m. It then checks the geometry and displays the first few rows of the sf object.
+
+
+
+
 ```{r}
 # Create sf object
 sf_points <- st_as_sf(WaterRetaining, coords = c("easting_m", "northing_m"))
@@ -139,6 +176,7 @@ st_geometry(sf_points)  # Check the geometry (should show POINT)
 head(sf_points)
 
 ```
+## This chunk calculates the mean dam height from the DamHeight column, excluding any missing values, and displays it.
 ```{r}
 # Calculate the mean dam height
 mean_dam_height <- mean(WaterRetaining$DamHeight, na.rm = TRUE)
@@ -146,6 +184,7 @@ mean_dam_height
 
 ```
 
+## This chunk calculates the weighted mean center of the spatial points using DamHeight as weights and extracts the coordinates of the weighted mean center.
 ```{r}
 # Calculate weighted mean center using dam heights as weights
 weighted_mean_center <- st_centroid(sf_points, weights = WaterRetaining$DamHeight)
@@ -182,6 +221,9 @@ The values of the mean dam height and the weighted mean center provide specific 
 
 These values and analyses are essential for making informed decisions regarding the management, development, and resilience of water retaining facilities and the surrounding environments.
 
+
+
+## This chunk plots the water retaining facilities, differentiating between the entire dataset and the subset of dams with heights greater than the mean dam height. It calculates and plots the mean centers for both the entire dataset and the subset, using ggplot2 for visualization.
 ```{r}
 # Load necessary libraries
 library(ggplot2)
@@ -216,6 +258,12 @@ ggplot() +
 
 ```
 
+
+## This chunk calculates the standard deviation of easting and northing coordinates for:
+
+## The entire dataset.
+## Subsets for hydroelectric facilities, small dam heights (<= median), and large dam heights (> median).
+## It then prints the calculated standard deviations, providing insights into the spatial dispersion of each subset.
 ```{r}
 # Calculate the standard deviation of easting and northing for the entire dataset
 sd_easting_all <- sd(WaterRetaining$easting_m, na.rm = TRUE)
